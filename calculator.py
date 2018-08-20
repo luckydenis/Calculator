@@ -11,10 +11,12 @@ operators = {
 
 
 def calculator(formula):
+    # parser string
     def parser(formula_string):
         number = ''
         flag = False
         for s in range(len(formula_string)):
+            # check monadic operator
             if formula_string[s] in '-+':
                 if s == 0:
                     flag = True
@@ -22,6 +24,7 @@ def calculator(formula):
                     flag = True
                 if formula_string[s - 1] in '(':
                     flag = True
+            # check numeral
             if formula_string[s] in '1234567890.':
                 number += formula_string[s]
             elif number:
@@ -32,6 +35,7 @@ def calculator(formula):
                 number = ''
                 flag = False
             if not flag:
+                # check bin-operators or '(', ')'
                 if formula_string[s] in operators or formula_string[s] in '()':
                     yield formula_string[s]
         if number:
@@ -42,17 +46,21 @@ def calculator(formula):
 
     def shunting_yard(formula_parsed):
         stack = list()
+        # go to the string (generator)
         for token in formula_parsed:
             if token in operators:
+                # we're here (
                 while stack and stack[-1] != '(' and operators[token][0] <= operators[stack[-1]][0]:
                     yield stack.pop()
                 stack.append(token)
+            # ( we're here ), extrude out of the stack
             elif token == ')':
                 while stack:
                     x = stack.pop()
                     if x == '(':
                         break
                     yield x
+            # ( we're here, push stack
             elif token == '(':
                 stack.append(token)
             else:
@@ -71,6 +79,3 @@ def calculator(formula):
         return stack.pop()
 
     return calc(shunting_yard(parser(formula)))
-
-
-print(calculator("-15/(7-(1+1))*3-(2+(1+1))*15/(7-(1+1))*3-(2+(1+1))*(15/(7-(1+1))*3-(2+(1+1))+15/(7-(1+1))*3-(2+(1+1)))"))
